@@ -18,7 +18,7 @@ doc = {
 	"id":        "fwssec001",
 	"resource":  "fakewebservices_server",
 	"name":      "Server Type must be one of [\"t2.small\",\"t2.medium\",\"t2.large\"]",
-	"reference": "https://github.com/hcrhall/sentinel-from-scratch/",
+	"reference": "https://github.com/hcrhall/policy-fws-library",
 }
 
 // Filter resources by type
