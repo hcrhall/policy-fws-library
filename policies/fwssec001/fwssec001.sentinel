@@ -1,0 +1,54 @@
+import "tfplan/v2" as tfplan
+import "eval"
+
+param valid_actions default [
+	["no-op"],
+	["create"],
+	["update"],
+]
+
+// Allowed server resource types
+allowed_server_types = [
+	"t2.small",
+	"t2.medium",
+	"t2.large",
+]
+
+doc = {
+	"id":        "fwssec001",
+	"resource":  "fakewebservices_server",
+	"name":      "Server Type must be one of [\"t2.small\",\"t2.medium\",\"t2.large\"]",
+	"reference": "https://github.com/hcrhall/sentinel-from-scratch/",
+}
+
+// Filter resources by type
+all_resources = filter tfplan.resource_changes as _, rc {
+		rc.type is doc.resource and
+			rc.mode is "managed" and
+			rc.change.actions in valid_actions
+}
+
+// Filter resources that violate a given condition
+violations = filter all_resources as _, r {
+		r.change.after.type not in allowed_server_types
+}
+
+// Build a summary report
+summary = {
+	"id":        doc.id,
+	"name":      doc.name,
+	"reference": doc.reference,
+	"violations": map violations as _, violation {
+		{
+			"name":    violation.change.after.name,
+			"address": violation.address,
+			"type":    violation.type,
+			"message": violation.change.after.type + " is not an allowed server type.",
+		}
+	},
+}
+
+// This Sentinel policy ensures that server instance type configuration does not violate a list of allowed types.
+main = rule {
+	eval.summary(summary, "warn")
+}
